@@ -1,0 +1,4 @@
+1 - determinar necessidade basal de liquidos
+2 - determinar necessidade de reposicao em funcao da desidratacao
+3 - determinar perdas hidricas
+4 - calcular o volume final e a velocidade de infusao
