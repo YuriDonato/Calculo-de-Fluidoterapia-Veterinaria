@@ -23,6 +23,7 @@ export const GlobalCss = createGlobalStyle`
     box-sizing: border-box;
     // font-family: 'IM Fell DW Pica', serif;
     color: ${cores.preta};
+    user-select: none;
   }
 
   body {
