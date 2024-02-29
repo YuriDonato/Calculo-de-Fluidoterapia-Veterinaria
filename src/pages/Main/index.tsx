@@ -123,10 +123,6 @@ const Main = () => {
 
   useEffect(() => {
     Calcular()
-    console.log(`basaldeliq: ${necessidadeBasal}`)
-    console.log(`peso: ${peso}`)
-    console.log(`repdes: ${reposicaoDesidratacao['4%']}`)
-    console.log(`perdahidr: ${perdaHidrica}`)
   }, [necessidadeBasal, reposicaoDesidratacao, perdaHidrica])
 
   return (
@@ -163,7 +159,7 @@ const Main = () => {
             <option value="filhote">Filhote</option>
           </Select>
           <Select
-            placeholder="Selecione a categoria de raça"
+            placeholder="Selecione a categoria de especie"
             marginTop={'1rem'}
             onChange={(e) => {
               setCategoriaLimiteInfusao(e.currentTarget.value)
@@ -314,7 +310,7 @@ const Main = () => {
 
       {/* somar tudo e mostrar */}
       <h1>Volume Total: {volumeFinal}ml/dia</h1>
-      <h1>Velocidade de Infusão: {taxaInfusao}ml/hora</h1>
+      {/* <h1>Velocidade de Infusão: {taxaInfusao}ml/hora</h1> */}
     </Container>
   )
 }
