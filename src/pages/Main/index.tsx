@@ -324,7 +324,7 @@ const Main = () => {
 
       {/* somar tudo e mostrar */}
       {paciente.volumeFinal ? (
-        <h1>Volume Total: {paciente.volumeFinal}ml/dia</h1>
+        <h1>Volume Total: {paciente.volumeFinal.toFixed(2)}ml/dia</h1>
       ) : (
         <></>
       )}
