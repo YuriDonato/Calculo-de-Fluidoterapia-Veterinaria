@@ -24,6 +24,17 @@ interface repoDesidratacao {
   '12-15%': boolean
 }
 
+type propPaciente = {
+  necessidadeBasal: string
+  reposicaoDesidratacao: repoDesidratacao
+  perdaHidrica: string
+  peso: number
+  volumeFinal: number
+  limiteInfusao: number
+  categoriaLimiteInfusao: string
+  taxaInfusao: number
+}
+
 const Main = () => {
   const repoEmpty: repoDesidratacao = {
     '4%': false,
@@ -32,58 +43,51 @@ const Main = () => {
     '10-12%': false,
     '12-15%': false
   }
-  const [necessidadeBasal, setNecessidadeBasal] = useState('')
-  const [necessidadeBasalAdicional, setNecessidadeBasalAdicional] = useState('')
-  const [reposicaoDesidratacao, setReposicaoDesidratacao] =
-    useState<repoDesidratacao>(repoEmpty)
-  const [perdaHidrica, setPerdaHidrica] = useState('')
-  const [peso, setPeso] = useState('')
-  const [volumeFinal, setVolumeFinal] = useState(0)
-  const [limiteInfusao, setLimiteInfusao] = useState(0)
-  const [categoriaLimiteInfusao, setCategoriaLimiteInfusao] = useState('')
-  const [taxaInfusao, setTaxaInfusao] = useState(0)
+  const pacienteEmpty: propPaciente = {
+    necessidadeBasal: '0',
+    reposicaoDesidratacao: repoEmpty,
+    perdaHidrica: '',
+    peso: 0,
+    volumeFinal: 0,
+    limiteInfusao: 0,
+    categoriaLimiteInfusao: '',
+    taxaInfusao: 0
+  }
+  const [paciente, setPaciente] = useState<propPaciente>(pacienteEmpty)
+  const [pesoFormatado, setPesoFormatado] = useState<string>('')
 
   const Calcular = () => {
     let tempNecessidade = 0
     let tempDesidratacao = 0
     let tempPerdaHidrica = 0
     let tempLimiteInfusao = 0
-    switch (necessidadeBasal) {
-      case 'carnivoros':
-        switch (necessidadeBasalAdicional) {
-          case 'adulto':
-            tempNecessidade = 40
-            break
-          case 'filhote':
-            tempNecessidade = 70
-            break
-        }
-        break
-      case 'equideos':
-        tempNecessidade = 30
-        break
-      case 'ruminantes':
+
+    switch (paciente.necessidadeBasal) {
+      case 'adulto':
         tempNecessidade = 40
+        break
+      case 'filhote':
+        tempNecessidade = 70
         break
     }
 
-    if (reposicaoDesidratacao['4%']) {
+    if (paciente.reposicaoDesidratacao['4%']) {
       tempDesidratacao += 4
     }
-    if (reposicaoDesidratacao['5-6%']) {
+    if (paciente.reposicaoDesidratacao['5-6%']) {
       tempDesidratacao += 5
     }
-    if (reposicaoDesidratacao['8%']) {
+    if (paciente.reposicaoDesidratacao['8%']) {
       tempDesidratacao += 8
     }
-    if (reposicaoDesidratacao['10-12%']) {
+    if (paciente.reposicaoDesidratacao['10-12%']) {
       tempDesidratacao += 10
     }
-    if (reposicaoDesidratacao['12-15%']) {
+    if (paciente.reposicaoDesidratacao['12-15%']) {
       tempDesidratacao += 12
     }
 
-    switch (perdaHidrica) {
+    switch (paciente.perdaHidrica) {
       case 'diarreia':
         tempPerdaHidrica = 40
         break
@@ -95,90 +99,85 @@ const Main = () => {
         break
     }
 
-    switch (categoriaLimiteInfusao) {
+    switch (paciente.categoriaLimiteInfusao) {
       case 'canino':
-        setLimiteInfusao(60)
+        setPaciente({ ...paciente, limiteInfusao: 60 })
         break
       case 'felino':
-        setLimiteInfusao(50)
-        break
-      case 'bovino':
-        setLimiteInfusao(10)
-        break
-      case 'bezerro':
-        setLimiteInfusao(40)
-        break
-      case 'equideo':
-        setLimiteInfusao(10)
+        setPaciente({ ...paciente, limiteInfusao: 50 })
         break
     }
 
-    tempNecessidade = parseInt(peso) * tempNecessidade
-    tempDesidratacao = parseInt(peso) * tempDesidratacao * 10
-    tempPerdaHidrica = parseInt(peso) * tempPerdaHidrica
-    tempLimiteInfusao = limiteInfusao * parseInt(peso)
-    setTaxaInfusao(tempLimiteInfusao)
-    setVolumeFinal(tempNecessidade + tempDesidratacao + tempPerdaHidrica)
+    tempNecessidade = paciente.peso * tempNecessidade
+    tempDesidratacao = paciente.peso * tempDesidratacao * 10
+    tempPerdaHidrica = paciente.peso * tempPerdaHidrica
+    tempLimiteInfusao = paciente.limiteInfusao * paciente.peso
+    setPaciente({ ...paciente, taxaInfusao: tempLimiteInfusao })
+    setPaciente({
+      ...paciente,
+      volumeFinal: tempNecessidade + tempDesidratacao + tempPerdaHidrica
+    })
   }
 
   useEffect(() => {
     Calcular()
-  }, [necessidadeBasal, reposicaoDesidratacao, perdaHidrica])
+  }, [paciente])
+
+  useEffect(() => {
+    // Quando o pesoFormatado mudar, atualiza o paciente
+    setPaciente((prevState) => ({
+      ...prevState,
+      peso: parseFloat(pesoFormatado)
+    }))
+  }, [pesoFormatado])
 
   return (
     <Container>
       <h1>Calculadora</h1>
 
-      {/* Necessidade basal de liquidos */}
-      <Select
-        placeholder="Determine a necessidade basal de líquidos"
-        marginTop={'1rem'}
-        onChange={(e) => {
-          setNecessidadeBasal(e.currentTarget.value)
-        }}
-      >
-        <option defaultChecked value="carnivoros">
-          Carnivoros
-        </option>
-        <option value="equideos">Eqüideos</option>
-        <option value="ruminantes">Ruminantes</option>
-      </Select>
-
-      {necessidadeBasal == 'carnivoros' ? (
-        <>
-          <Select
-            placeholder="Selecione a categoria de idade"
-            marginTop={'1rem'}
-            onChange={(e) => {
-              setNecessidadeBasalAdicional(e.currentTarget.value)
-            }}
-          >
-            <option defaultChecked value="adulto">
-              Adulto
-            </option>
-            <option value="filhote">Filhote</option>
-          </Select>
-          <Select
-            placeholder="Selecione a categoria de especie"
-            marginTop={'1rem'}
-            onChange={(e) => {
-              setCategoriaLimiteInfusao(e.currentTarget.value)
-            }}
-          >
-            <option value="felino">Felino</option>
-            <option value="canino">Canino</option>
-          </Select>
-        </>
-      ) : (
-        <></>
-      )}
+      {/* Necessidade basal de liquidos (Levando em conta apenas carnivoro)*/}
+      <>
+        <Select
+          placeholder="Selecione a categoria de especie"
+          marginTop={'1rem'}
+          onChange={(e) => {
+            setPaciente({
+              ...paciente,
+              categoriaLimiteInfusao: e.currentTarget.value
+            })
+          }}
+        >
+          <option value="felino">Felino</option>
+          <option value="canino">Canino</option>
+        </Select>
+        <Select
+          placeholder="Selecione a categoria de idade"
+          marginTop={'1rem'}
+          onChange={(e) => {
+            setPaciente({
+              ...paciente,
+              necessidadeBasal: e.currentTarget.value
+            })
+          }}
+        >
+          <option defaultChecked value="adulto">
+            Adulto
+          </option>
+          <option value="filhote">Filhote</option>
+        </Select>
+      </>
 
       {/* Peso do animal */}
       <Input
         placeholder="Insira o peso do animal"
-        value={peso}
+        value={pesoFormatado}
         onChange={(e) => {
-          setPeso(e.target.value)
+          let pesoValue = e.currentTarget.value
+          // Substituir vírgulas por pontos
+          pesoValue = pesoValue.replace(',', '.')
+          // Remover todos os caracteres exceto números e ponto
+          pesoValue = pesoValue.replace(/[^0-9.]/g, '')
+          setPesoFormatado(pesoValue)
         }}
       ></Input>
 
@@ -197,9 +196,12 @@ const Main = () => {
               <Td>
                 <Checkbox
                   onChange={(e) => {
-                    setReposicaoDesidratacao({
-                      ...reposicaoDesidratacao,
-                      '4%': !reposicaoDesidratacao['4%']
+                    setPaciente({
+                      ...paciente,
+                      reposicaoDesidratacao: {
+                        ...paciente.reposicaoDesidratacao,
+                        '4%': !paciente.reposicaoDesidratacao['4%']
+                      }
                     })
                   }}
                   iconColor="red"
@@ -213,9 +215,12 @@ const Main = () => {
               <Td>
                 <Checkbox
                   onChange={(e) => {
-                    setReposicaoDesidratacao({
-                      ...reposicaoDesidratacao,
-                      '5-6%': !reposicaoDesidratacao['5-6%']
+                    setPaciente({
+                      ...paciente,
+                      reposicaoDesidratacao: {
+                        ...paciente.reposicaoDesidratacao,
+                        '5-6%': !paciente.reposicaoDesidratacao['5-6%']
+                      }
                     })
                   }}
                   iconColor="red"
@@ -232,9 +237,12 @@ const Main = () => {
               <Td>
                 <Checkbox
                   onChange={(e) => {
-                    setReposicaoDesidratacao({
-                      ...reposicaoDesidratacao,
-                      '8%': !reposicaoDesidratacao['8%']
+                    setPaciente({
+                      ...paciente,
+                      reposicaoDesidratacao: {
+                        ...paciente.reposicaoDesidratacao,
+                        '8%': !paciente.reposicaoDesidratacao['8%']
+                      }
                     })
                   }}
                   iconColor="red"
@@ -251,9 +259,12 @@ const Main = () => {
               <Td>
                 <Checkbox
                   onChange={(e) => {
-                    setReposicaoDesidratacao({
-                      ...reposicaoDesidratacao,
-                      '10-12%': !reposicaoDesidratacao['10-12%']
+                    setPaciente({
+                      ...paciente,
+                      reposicaoDesidratacao: {
+                        ...paciente.reposicaoDesidratacao,
+                        '10-12%': !paciente.reposicaoDesidratacao['10-12%']
+                      }
                     })
                   }}
                   iconColor="red"
@@ -270,9 +281,12 @@ const Main = () => {
               <Td>
                 <Checkbox
                   onChange={(e) => {
-                    setReposicaoDesidratacao({
-                      ...reposicaoDesidratacao,
-                      '12-15%': !reposicaoDesidratacao['12-15%']
+                    setPaciente({
+                      ...paciente,
+                      reposicaoDesidratacao: {
+                        ...paciente.reposicaoDesidratacao,
+                        '12-15%': !paciente.reposicaoDesidratacao['12-15%']
+                      }
                     })
                   }}
                   iconColor="red"
@@ -298,7 +312,7 @@ const Main = () => {
         placeholder="Determine as perdas hídricas contínuas"
         marginTop={'1rem'}
         onChange={(e) => {
-          setPerdaHidrica(e.currentTarget.value)
+          setPaciente({ ...paciente, perdaHidrica: e.currentTarget.value })
         }}
       >
         <option defaultChecked value="vomito">
@@ -309,7 +323,12 @@ const Main = () => {
       </Select>
 
       {/* somar tudo e mostrar */}
-      <h1>Volume Total: {volumeFinal}ml/dia</h1>
+      {paciente.volumeFinal ? (
+        <h1>Volume Total: {paciente.volumeFinal}ml/dia</h1>
+      ) : (
+        <></>
+      )}
+
       {/* <h1>Velocidade de Infusão: {taxaInfusao}ml/hora</h1> */}
     </Container>
   )
